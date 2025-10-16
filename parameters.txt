@@ -1,0 +1,4 @@
+  match_score = 999
+transition  =   999ss
+transversion =   999
+gap_penalty=999
