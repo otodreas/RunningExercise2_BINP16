@@ -16,15 +16,18 @@ output_path = 'output_fasta.txt'
 # Check the number of arguments passed to the program.
 # If nothing is passed after the program name, throw an error.
 if len(sys.argv) <= 1:
-    raise IndexError('Too few arguments passed. You must pass the path to the input file to the program.')
+    raise IndexError('Too few arguments passed. You must pass the path to '
+                     'the input file to the program.')
     
 # If four or more, raise an error.
 elif len(sys.argv) > 4:
-    raise IndexError('Too many arguments passed. Please pass no more than three arguments to the program.')
+    raise IndexError('Too many arguments passed. Please pass no more than '
+                     'three arguments to the program.')
 
 # Check that the first file passed exists.
 elif not os.path.exists(sys.argv[1]):
-    raise ValueError('The input file does not exist. Ensure that the input file is passed as the first argument!')
+    raise ValueError('The input file does not exist. Ensure that the input '
+                     'file is passed as the first argument!')
     
 # If one argument is passed after the program name, assign it to input_path.
 elif len(sys.argv) == 2:
@@ -34,7 +37,9 @@ elif len(sys.argv) == 2:
 # the second argument is referring to.
 elif len(sys.argv) == 3:
     input_path = sys.argv[1]
-    argtype = input('The identity of the last argument is ambiguous. Are you providing a path to an output file? ("yes"/"y" for output file, "no"/"n" for parameters file): ')
+    argtype = input('The identity of the last argument is ambiguous. Are you '
+                    'providing a path to an output file? ("yes"/"y" for '
+                    'output file, "no"/"n" for parameters file): ')
     if argtype == 'yes' or argtype == 'y':
         output_path = sys.argv[2]
     elif argtype == 'no' or argtype == 'n':
@@ -43,7 +48,7 @@ elif len(sys.argv) == 3:
         raise ValueError('Invalid answer. Please start over.')
     
 # If three, assign them to input_path, parameters_path, and output_path.
-elif len(sys.argv) == 4:
+else: # the only remaining possibility is that 4 arguments were passed.
     input_path, parameters_path, output_path = sys.argv[1:4]
     
 
@@ -110,10 +115,18 @@ def fasta_importer(path: str) -> dict:
                 # Check that the sequence contains only valid characters. If
                 # it does not, replace invalid characters with N.
                 if sum(line_upper.count(c) for c in valid_chars) != len(line):
+                    
+                    # Store the characters from line_upper in a list to 
+                    # iterate through.
                     line_list = list(line_upper)
                     for i, l in enumerate(line_list):
+                        
+                        # Update the character at position i to N if it is not
+                        # valid.
                         if l not in valid_chars:
                             line_list[i] = 'N'
+                    
+                    # Convert line_list back to a string.
                     line_upper = str(line_list)
                 
                 # Check if the previously read line was a header. If so, 
@@ -140,81 +153,94 @@ def fasta_importer(path: str) -> dict:
     # Return the dictionary fasta_dict.
     return fasta_dict
 
+def parameter_importer(path: str = None) -> dict:
+    
+    # Assign scores to variables in a dictionary using default values.
+    parameters_dict = {'match_score': 1,
+                       'transition': -1, # a<->g or c<->t
+                       'transversion': -2, # other mutations
+                       'gap_penalty': -1}
+    
+    # If a parameter document is passed to the program, import the preferred
+    # scores and update the dictionary with their values.
+    if parameters_path is not None:
+        
+        # Open the file to read it.
+        with open(path, 'r') as file:
+            
+            # Initiate a while loop to read each line individually.
+            while True:
+                
+                # Assign the line to the variable line.
+                line = file.readline()
+                
+                # Check that the end of the file has not been reached.
+                if line:
+                    
+                    # Find the index of the equals sign in the line.
+                    try:
+                        equals_sign_index = line.index('=')
+                        
+                    # If no equals sign is found, raise an error.
+                    except ValueError:
+                        print('The parameter file is misconfigured. Every '
+                              'line must contain an equals sign.')
+                        
+                    # assign the characters before the equals sign to the
+                    # variable param_read, stripping leading whitespaces.
+                    param_read = line[: equals_sign_index].strip()
+                    
+                    # Check if the parameter has a match in the parameter
+                    # dictionary.
+                    if param_read in parameters_dict.keys():
+                        
+                        # Assign the value following the equals sign to the 
+                        # variable value as a float.
+                        try:
+                            value = float(line[equals_sign_index
+                                               + 1:].strip())
+                        
+                        # Throw an error if the value is not convertable to 
+                        # float.
+                        except ValueError:
+                            print('Parameter value error: all parameters '
+                                  'must be numbers.')
+                            
+                        # Update the dictionary with the new value.
+                        parameters_dict[param_read] = value
+                        
+                    # If the parameter is not found, throw an error and
+                    # interrupt the program. Print the accepted format for the
+                    # parameter file.
+                    else:
+                        raise ValueError('Parameter not found error: the '
+                                         'parameter file is misconfigured. '
+                                         'Please use the following format:\n'
+                                         'match_score = <value>\n'
+                                         'transition = <value>\n'
+                                         'transversion = <value>\n'
+                                         'gap_penalty = <value>\n')
+            
+                # Break the while loop when there are no more lines to be
+                # read.
+                else:
+                    break
+                
+    return parameters_dict
 
 ##### ================ #######################################################
 ##### 3: Program logic #######################################################
 ##### ================ #######################################################
 
-### 3.1: Import parameters if necessary.
-### ------------------------------------
+### 3.1: Import data and parameters if necessary.
+### ---------------------------------------------
 
 # Run the fasta_importer function on the file passed to the program by the 
 # user.
 fasta_dict = fasta_importer(input_path)
+parameters_dict = parameter_importer(parameters_path)
 
-# Assign scores to variables in a dictionary using default values.
-parameters_dict = {'match_score': 1,
-                   'transition': -1, # a<->g or c<->t
-                   'transversion': -2, # other mutations
-                   'gap_penalty': -1}
 
-# If a parameter document is passed to the program, import the preferred
-# scores and update the dictionary with their values.
-if parameters_path is not None:
-    
-    # Open the file to read it.
-    with open(parameters_path, 'r') as file:
-        
-        # Initiate a while loop to read each line individually.
-        while True:
-            
-            # Assign the line to the variable line.
-            line = file.readline()
-            
-            # Check that the end of the file has not been reached.
-            if line:
-                
-                # Find the index of the equals sign in the line.
-                try:
-                    equals_sign_index = line.index('=')
-                    
-                # If no equals sign is found, raise an error.
-                except ValueError:
-                    print('The parameter file is misconfigured. Every line must contain an equals sign.')
-                    
-                # assign the characters before the equals sign to the variable
-                # param_read, stripping leading whitespaces.
-                param_read = line[: equals_sign_index].strip()
-                
-                # Check if the parameter has a match in the parameter
-                # dictionary.
-                if param_read in parameters_dict.keys():
-                    
-                    # Assign the value following the equals sign to the 
-                    # variable value as a float.
-                    try:
-                        value = float(line[equals_sign_index + 1: ].strip())
-                    
-                    # Throw an error if the value is not convertable to float.
-                    except ValueError:
-                        print('Parameter value error: all parameters must be numbers')
-                    # Update the dictionary with the new value.
-                    parameters_dict[param_read] = value
-                    
-                # If the parameter is not found, throw an error and interrupt
-                # the program. Print the accepted format for the parameter 
-                # file.
-                else:
-                    raise ValueError('Parameter not found error: the parameter file is misconfigured. '
-                                     'Please use the following format:\n'
-                                     'match_score = <value>\n'
-                                     'transition = <value>\n'
-                                     'transversion = <value>\n'
-                                     'gap_penalty = <value>\n')
-        
-            # Break the while loop when there are no more lines to be read.
-            else:
-                break
         
 ### 3.2: Calculate scores for each pairwise alignment.
 ### --------------------------------------------------
@@ -227,15 +253,16 @@ score_summary = ''
 for i, key1 in enumerate(fasta_dict.keys()):
     for j, key2 in enumerate(fasta_dict.keys()):
 
-        # Only calculate scores when i < j to ensure the same sequence does not get scored with itself or that
-        # duplicate scores are reported.
+        # Only calculate scores when i < j to ensure the same sequence does
+        # not get scored with itself or that duplicate scores are reported.
         if i < j:
 
-            # Assign sequences to variables and normalize case. Ensure that they are the same length, otherwise
-            # interrupt the program.
+            # Assign sequences to variables and normalize case. Ensure that
+            # they are the same length, otherwise interrupt the program.
             seq_a, seq_b = fasta_dict[key1], fasta_dict[key2]
             if len(seq_a) != len(seq_b):
-                raise ValueError('sequences are not of the same length. program interrupted')
+                raise ValueError('sequences are not of the same length. '
+                                 'program interrupted')
 
             # Initialize alignment scoring variables.
             identity = 0
@@ -244,7 +271,8 @@ for i, key1 in enumerate(fasta_dict.keys()):
             alignment_len = len(seq_a)
             disregarded_positions = 0
 
-            # Zip the sequences to compare alignment at each position and loop through nucleotide by nucleotide.
+            # Zip the sequences to compare alignment at each position and loop
+            # through nucleotide by nucleotide.
             for a, b in zip(seq_a, seq_b):
 
                 # Check if either nucleotide is the character N. If so, do not
