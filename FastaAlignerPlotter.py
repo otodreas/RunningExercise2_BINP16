@@ -129,6 +129,7 @@ def fasta_importer(path: str) -> dict:
                 fasta_dict[head] = seq
                 break
 
+    # Check that all sequences are of the same length
     # Return the dictionary fasta_dict.
     return fasta_dict
 
@@ -183,8 +184,8 @@ for i, item1 in enumerate(fasta_dict.items()):
                 # as 0.
                 for k, base1 in enumerate(seq1):
 
-                    # Check if the bases are a match (matched gaps are not
-                    # considered matches).
+                    # Check if the bases are a match (matched gaps and matched
+                    # N nucletodes are not considered matches).
                     if base2 == base1 and base2 in 'ACGT':
 
                         # If the two indecies and 1 sum to the length of the
