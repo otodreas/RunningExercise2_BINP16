@@ -1,3 +1,34 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+'''
+FastaAlignerPlotter.py
+
+Description: This program will output a dotplot of each pairwise alignment 
+in a FASTA file with multiple aligned sequences.
+
+User-defined functions: 
+    fasta_importer: takes a file path as an argument and returns a dictionary,
+where FASTA headers are keys and sequences are values.
+
+Non-standard modules: None.
+
+Procedure:
+    1: Import libraries
+    2: Gather user inputs from the command line
+    3: Define user-defined functions
+    4: Run program, iterating through sequences and plotting alignments
+
+Input: input file
+
+Usage: ./FastaAligner.py input_file
+
+Version 1.0
+Date: 2025-10-16
+Name: Oliver Todreas
+'''
+
+
 ##### ==================== ###################################################
 ##### 1: Library importing ###################################################
 ##### ==================== ###################################################
@@ -32,15 +63,22 @@ else:
     
 
 ###### ========================= #############################################
-###### 2: User-defined functions #############################################
+###### 3: User-defined functions #############################################
 ###### ========================= #############################################
 
-### 2.1: Define FASTA importer function.
+### 3.1: Define FASTA importer function.
 ### ------------------------------------
 
 # Define fasta_importer that takes a file path as a string and returns a 
 # dictionary of the FASTA data.
 def fasta_importer(path: str) -> dict:
+
+    # Check that the FASTA file is of the correct filetype.
+    fasta_exts = ('.fasta', '.fas', '.fa', '.fna', '.ffn', '.faa', '.mpfa', 
+                  '.frn')
+    if not path.endswith(fasta_exts):
+        raise ValueError('Error: a non-FASTA file has been passed to the '
+                         'program.')
 
     # Create empty dictionary fasta_dict in which to store the file.
     fasta_dict = {}
@@ -112,7 +150,7 @@ def fasta_importer(path: str) -> dict:
                 # assign the current line to the variable seq.
                 if header_read:
                     seq = line_upper
-
+                    
                 # If the previously read line was a sequence, add the current 
                 # line to the previous line to fix sequences split by newline 
                 # characters.
@@ -122,23 +160,33 @@ def fasta_importer(path: str) -> dict:
                 # Assign the variable header_read to False if the line read 
                 # did not start with a '>'.
                 header_read = False
-        
+                
             # Check if there are no more lines to read. Add the final head and 
             # seq pair to fasta_dict and break the while loop.
             if not line:
                 fasta_dict[head] = seq
                 break
 
-    # Check that all sequences are of the same length
+    # Check that all sequences are of the same length. If not, return an error.
+    # Loop through the values of the dictionary appending them to seq_lengths.
+    seq_lengths = []
+    for i in fasta_dict.values():
+        seq_lengths.append(i)
+        
+    # Ensure that the first sequence's is the same as all the other sequences.
+    if seq_lengths.count(seq_lengths[0]) != len(fasta_dict.keys()):
+        raise ValueError('Not all sequences in the FASTA file are of the same '
+                         'length.')
+        
     # Return the dictionary fasta_dict.
     return fasta_dict
 
 
 ##### ================ #######################################################
-##### 3: Program logic #######################################################
+##### 4: Program logic #######################################################
 ##### ================ #######################################################
 
-### 3.1: Import data.
+### 4.1: Import data.
 ### -----------------
 
 # Run the fasta_importer function on the file passed to the program by the 
@@ -146,10 +194,11 @@ def fasta_importer(path: str) -> dict:
 fasta_dict = fasta_importer(input_path)
 
 
-### 3.1: Construct and save plots.
+### 4.2: Construct and save plots.
 ### ------------------------------
 
-# Loop through dictionary entries, plotting each sequence against every other sequence in the dictionary once.
+# Loop through dictionary entries, plotting each sequence against every other
+# sequence in the dictionary once.
 for i, item1 in enumerate(fasta_dict.items()):
     for j, item2 in enumerate(fasta_dict.items()):
 
@@ -240,6 +289,8 @@ for i, item1 in enumerate(fasta_dict.items()):
             # Set the plot title.
             plt.title('Dot plot (main diagonal matches in black)')
             
+            # Plot the image to the axes. Use color map Greys to ensure that
+            # non-matches are white.
             plt.imshow(im, cmap='Greys')
             
             # Save the plot in the folder dotplots.

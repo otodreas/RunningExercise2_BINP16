@@ -1,3 +1,38 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+'''
+FastaAligner.py
+
+Description: This program will output each pairwise alignment score in a FASTA
+file with multiple aligned sequences. It uses predifined scoring rules that can
+be altered by the user.
+
+User-defined functions: 
+    fasta_importer: takes a file path as an argument and returns a dictionary,
+where FASTA headers are keys and sequences are values.
+    parameter_importer: takes a file path as an argument and returns a
+dictionary where score types are keys and scores are values.
+    
+Non-standard modules: None.
+
+Procedure:
+    1: Import libraries
+    2: Gather user inputs from the command line
+    3: Define user-defined functions
+    4: Run program, iterating through sequences and calculating their alignment
+scores.
+
+Input: input file, parameters [optional], output file [optional]
+
+Usage: ./FastaAligner.py input_file
+
+Version 1.0
+Date: 2025-10-16
+Name: Oliver Todreas
+'''
+
+
 ##### ==================== ###################################################
 ##### 1: Library importing ###################################################
 ##### ==================== ###################################################
@@ -40,10 +75,13 @@ elif len(sys.argv) == 3:
     argtype = input('The identity of the last argument is ambiguous. Are you '
                     'providing a path to an output file? ("yes"/"y" for '
                     'output file, "no"/"n" for parameters file): ')
+    
     if argtype == 'yes' or argtype == 'y':
         output_path = sys.argv[2]
+        
     elif argtype == 'no' or argtype == 'n':
         parameters_path = sys.argv[2]
+        
     else:
         raise ValueError('Invalid answer. Please start over.')
     
@@ -53,15 +91,22 @@ else: # the only remaining possibility is that 4 arguments were passed.
     
 
 ###### ========================= #############################################
-###### 2: User-defined functions #############################################
+###### 3: User-defined functions #############################################
 ###### ========================= #############################################
 
-### 2.1: Define FASTA importer function.
+### 3.1: Define FASTA importer function.
 ### ------------------------------------
 
 # Define fasta_importer that takes a file path as a string and returns a 
 # dictionary of the FASTA data.
 def fasta_importer(path: str) -> dict:
+
+    # Check that the FASTA file is of the correct filetype.
+    fasta_exts = ('.fasta', '.fas', '.fa', '.fna', '.ffn', '.faa', '.mpfa', 
+                  '.frn')
+    if not path.endswith(fasta_exts):
+        raise ValueError('Error: a non-FASTA file has been passed to the '
+                         'program.')
 
     # Create empty dictionary fasta_dict in which to store the file.
     fasta_dict = {}
@@ -153,6 +198,12 @@ def fasta_importer(path: str) -> dict:
     # Return the dictionary fasta_dict.
     return fasta_dict
 
+
+### 3.2: Define parameter importer function.
+### ----------------------------------------
+
+# Define parameter_importer that takes a file path as a string and returns a
+# dictionary used for scoring.
 def parameter_importer(path: str = None) -> dict:
     
     # Assign scores to variables in a dictionary using default values.
@@ -225,14 +276,26 @@ def parameter_importer(path: str = None) -> dict:
                 # read.
                 else:
                     break
+            
+    # Check that all sequences are of the same length. If not, return an error.
+    # Loop through the values of the dictionary appending them to seq_lengths.
+    seq_lengths = []
+    for i in fasta_dict.values():
+        seq_lengths.append(i)
+        
+    # Ensure that the first sequence's is the same as all the other sequences.
+    if seq_lengths.count(seq_lengths[0]) != len(fasta_dict.keys()):
+        raise ValueError('Not all sequences in the FASTA file are of the same '
+                         'length.')
                 
+    # Return the dictionary fasta_dict.
     return parameters_dict
 
 ##### ================ #######################################################
-##### 3: Program logic #######################################################
+##### 4: Program logic #######################################################
 ##### ================ #######################################################
 
-### 3.1: Import data and parameters if necessary.
+### 4.1: Import data and parameters if necessary.
 ### ---------------------------------------------
 
 # Run the fasta_importer function on the file passed to the program by the 
@@ -242,7 +305,7 @@ parameters_dict = parameter_importer(parameters_path)
 
 
         
-### 3.2: Calculate scores for each pairwise alignment.
+### 4.2: Calculate scores for each pairwise alignment.
 ### --------------------------------------------------
 
 # Assign an empty list to the variable score_summary.
@@ -332,7 +395,7 @@ for i, key1 in enumerate(fasta_dict.keys()):
                               f'Score={score}\n')
 
 
-### 3.3: Write output file.
+### 4.3: Write output file.
 ### -----------------------
 with open(output_path, 'w') as f:
     f.write(score_summary)
