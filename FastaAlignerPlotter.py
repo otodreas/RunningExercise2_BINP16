@@ -239,8 +239,9 @@ for i, item1 in enumerate(fasta_dict.items()):
             # Set the plot title.
             plt.title('Dot plot (main diagonal matches in black)')
             
-            # Save the plot.
+            plt.imshow(im, cmap='Greys')
+            
+            # Save the plot in the folder dotplots.
             if not os.path.exists('dotplots'):
                 os.mkdir('dotplots')
-            
             plt.savefig(f'dotplots/{id1}_{id2}.png')
