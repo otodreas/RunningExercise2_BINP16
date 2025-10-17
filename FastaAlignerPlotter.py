@@ -26,7 +26,7 @@ Input: input file
 Usage: ./FastaAligner.py input_file
 
 Version 1.0
-Date: 2025-10-16
+Date: 2025-10-17
 Name: Oliver Todreas
 '''
 
