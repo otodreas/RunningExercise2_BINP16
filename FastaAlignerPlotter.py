@@ -34,9 +34,17 @@ Name: Oliver Todreas
 ##### ==================== ###################################################
 ##### 1: Library importing ###################################################
 ##### ==================== ###################################################
+
+# The sys module is used to access arguments from the command line.
 import sys
+
+# The os module is used to check if files exist and make directories.
 import os
+
+# The matplotlib module is used to make plots.
 import matplotlib.pyplot as plt
+
+# The numpy module is used to create numpy arrays used by matplotlib.
 import numpy as np
 
 

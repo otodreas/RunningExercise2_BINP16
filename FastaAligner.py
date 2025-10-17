@@ -33,15 +33,20 @@ Name: Oliver Todreas
 '''
 
 
-##### ==================== ###################################################
-##### 1: Library importing ###################################################
-##### ==================== ###################################################
+##### ==================== ####################################################
+##### 1: Library importing ####################################################
+##### ==================== ####################################################
+
+# The sys module is used to access arguments from the command line.
 import sys
+
+# The os module is used to check if files exist.
 import os
 
-##### ============== #########################################################
-##### 2: User inputs #########################################################
-##### ============== #########################################################
+
+##### ============== ##########################################################
+##### 2: User inputs ##########################################################
+##### ============== ##########################################################
 
 # Initialize parameters_path and output_path.
 parameters_path = None
@@ -105,9 +110,9 @@ if os.path.exists(output_path) and output_path != 'output_fasta.txt':
         raise ValueError('Invalid answer. Please start over.')
     
 
-###### ========================= #############################################
-###### 3: User-defined functions #############################################
-###### ========================= #############################################
+###### ========================= ##############################################
+###### 3: User-defined functions ##############################################
+###### ========================= ##############################################
 
 ### 3.1: Define FASTA importer function.
 ### ------------------------------------
@@ -326,8 +331,8 @@ def parameter_importer(path: str = None) -> dict:
         if not os.path.exists(path):
             raise ValueError('The parameters file does not exist.')        
     
-        # If a parameter document is passed to the program, import the preferred
-        # scores and update the dictionary with their values.
+        # If a parameter document is passed to the program, import the
+        # preferred scores and update the dictionary with their values.
         if parameters_path is not None:
             
             # Open the file to read it.
@@ -349,13 +354,13 @@ def parameter_importer(path: str = None) -> dict:
                         # If no equals sign is found, raise an error.
                         except ValueError:
                             print('The parameter file is misconfigured. Every '
-                                  'line must contain an equals sign.')
+                                  'line must contain "=".')
     
                         # Check for redundant equals signs.
                         if line.count('=') > 1:
                             raise ValueError('The parameter file is '
                                              'misconfigured. Every line must '
-                                             'contain no more than 1 equals sign')
+                                             'contain no more than 1 "=".')
                             
                         # assign the characters before the equals sign to the
                         # variable param_read, stripping leading whitespaces.
@@ -364,17 +369,17 @@ def parameter_importer(path: str = None) -> dict:
                         # Check if the parameter has a match in the parameter
                         # dictionary. If not, raise a formatting error.
                         if param_read not in parameters_dict.keys():
-                            raise ValueError('Parameter not found error: the '
-                                             'parameter file is misconfigured. '
-                                             'Please use the following format:\n'
-                                             'match_score = <value>\n'
-                                             'transition = <value>\n'
-                                             'transversion = <value>\n'
-                                             'gap_penalty = <value>')
+                            raise ValueError('The parameter file is '
+                                             'misconfigured. Please use the '
+                                             'following format:'
+                                             '\nmatch_score = <value>'
+                                             '\ntransition = <value>'
+                                             '\ntransversion = <value>'
+                                             '\ngap_penalty = <value>')
                         
-                        # If the parameter has a match in the parameter dictionary,
-                        # try adding the value to the right of the equals sign to
-                        # that dictionary key.
+                        # If the parameter has a match in the parameter
+                        # dictionary, try adding the value to the right of the
+                        # equals sign to that dictionary key.
                         else:
                             
                             # Assign the value following the equals sign to the 
@@ -401,9 +406,9 @@ def parameter_importer(path: str = None) -> dict:
     return parameters_dict
 
 
-##### ================ #######################################################
-##### 4: Program logic #######################################################
-##### ================ #######################################################
+##### ================ ########################################################
+##### 4: Program logic ########################################################
+##### ================ ########################################################
 
 ### 4.1: Import data and parameters if necessary.
 ### ---------------------------------------------
