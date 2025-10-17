@@ -68,7 +68,7 @@ elif len(sys.argv) == 3:
     input_path = sys.argv[1]
     argtype = input('The identity of the last argument is ambiguous. Are you '
                     'providing a path to an output file? ("yes"/"y" for '
-                    'output file, "no"/"n" for parameters file): ')
+                    'output file, "no"/"n" for parameter file): ')
     
     if argtype == 'yes' or argtype == 'y':
         output_path = sys.argv[2]
@@ -324,9 +324,7 @@ def parameter_importer(path: str = None) -> dict:
             
         # Check that the path passed exists.
         if not os.path.exists(path):
-            raise ValueError('The parameters file does not exist.')
-            
-        
+            raise ValueError('The parameters file does not exist.')        
     
         # If a parameter document is passed to the program, import the preferred
         # scores and update the dictionary with their values.
