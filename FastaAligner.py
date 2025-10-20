@@ -13,6 +13,7 @@ User-defined functions:
 where FASTA headers are keys and sequences are values.
     parameter_importer: takes a file path as an argument and returns a
 dictionary where score types are keys and scores are values.
+    Note: separate documentation is provided inside the user-defined functions.
     
 Non-standard modules: None.
 
@@ -22,6 +23,12 @@ Procedure:
     3: Define user-defined functions
     4: Run program, iterating through sequences and calculating their alignment
 scores.
+
+The program addresses the following potential errors:
+    Exactly 1, 2, or 3 filepaths must be passed to the function. They must
+exist and be of the appropriate filetype
+    Other potential errors are handled inside user-defined functions. Separate
+documentation is provided for them
 
 Input: input file, parameters [optional], output file [optional]
 
@@ -434,12 +441,8 @@ for i, key1 in enumerate(fasta_dict.keys()):
         # not get scored with itself or that duplicate scores are reported.
         if i < j:
 
-            # Assign sequences to variables and normalize case. Ensure that
-            # they are the same length, otherwise interrupt the program.
+            # Assign sequences to variables.
             seq_a, seq_b = fasta_dict[key1], fasta_dict[key2]
-            if len(seq_a) != len(seq_b):
-                raise ValueError('sequences are not of the same length. '
-                                 'program interrupted')
 
             # Initialize alignment scoring variables.
             identity = 0

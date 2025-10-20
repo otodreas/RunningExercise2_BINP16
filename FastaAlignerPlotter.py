@@ -16,6 +16,7 @@ is read backwards.
 User-defined functions: 
     fasta_importer: takes a file path as an argument and returns a dictionary,
 where FASTA headers are keys and sequences are values.
+    Note: separate documentation is provided inside the user-defined functions.
 
 Non-standard modules: matplotlib.
     Use pip install matplotlib to install. Numpy is included in the
@@ -26,6 +27,12 @@ Procedure:
     2: Gather user inputs from the command line
     3: Define user-defined functions
     4: Run program, iterating through sequences and plotting alignments
+
+The program addresses the following potential errors:
+    Exactly 1 filepath must be passed to the function. It must exist and be of
+the appropriate filetype
+    Other potential errors are handled inside user-defined functions. Separate
+documentation is provided for them
 
 Input: input file
 
