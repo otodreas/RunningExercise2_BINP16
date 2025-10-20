@@ -1,4 +1,4 @@
-Match_score = 10
-transition  =   -1
-transversion =   -10
-gap_penalty=-20
+match_score = 10
+transition = -1
+transversion = -10
+gap_penalty = -20
