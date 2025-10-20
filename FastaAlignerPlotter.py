@@ -5,7 +5,13 @@
 FastaAlignerPlotter.py
 
 Description: This program will output a dotplot of each pairwise alignment 
-in a FASTA file with multiple aligned sequences.
+in a FASTA file with multiple aligned sequences. This function produces a
+dotplot using matplotlib's "imshow" function, which reads a 2D numpy array as
+an image. The advantages to this are that the function is a neat solution to 
+plotting neighboring squares with different colors without having to draw
+polygons manually. The disadvantage is that the image needs bitmap coordinates,
+in which the y-axis is inverted. Therefore, the sequence plotted on the y-axis
+is read backwards.
 
 User-defined functions: 
     fasta_importer: takes a file path as an argument and returns a dictionary,
@@ -300,20 +306,26 @@ for i, item1 in enumerate(fasta_dict.items()):
                         # sequence represented on the y axis is being read top
                         # down. Append the appropriate value to row.
                         if k + l + 1 == len(seq1):
+                            
+                            # Append 2 to the list row to encode for a diagonal
+                            # match.
                             row.append(2)
 
                         else:
+                            
+                            # Append 1 to the list row to encode for a non-
+                            # diagonal match.
                             row.append(1)
                             
-                    # In the case of a non-match, append 0 to row. 
+                    # Encode a non-match with 0. 
                     else:
                         row.append(0)
 
                 # Append row to im_list once the entire row has been read.
                 im_list.append(row)
 
-            # Convert im_list to a numpy array so that it can be handled by 
-            # plt.imshow.
+            # Convert im_list to a numpy array once the sequences have been
+            # read completely so that it can be handled by plt.imshow.
             im = np.array(im_list)
 
             # Assign variables xticks and yticks to lists of each sequence, 
@@ -354,4 +366,10 @@ for i, item1 in enumerate(fasta_dict.items()):
             # Save the plot in the folder dotplots.
             if not os.path.exists('dotplots'):
                 os.mkdir('dotplots')
-            plt.savefig(f'dotplots/{id1}_{id2}.png')
+                
+            # When saving the figure, force dpi to be equal to the dpi of the
+            # figure. This is the expected behavior when leaving this argument
+            # blank. However, I observed unexpected behavior when leaving the
+            # argument blank and found that assigning it to the figure's dpi
+            # when dealing with long alignments.
+            plt.savefig(f'dotplots/{id1}_{id2}.png', dpi=fig.get_dpi())

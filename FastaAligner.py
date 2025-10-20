@@ -368,7 +368,7 @@ def parameter_importer(path: str = None) -> dict:
                         
                         # Check if the parameter has a match in the parameter
                         # dictionary. If not, raise a formatting error.
-                        if param_read not in parameters_dict.keys():
+                        if param_read.lower() not in parameters_dict.keys():
                             raise ValueError('The parameter file is '
                                              'misconfigured. Please use the '
                                              'following format:'
@@ -395,7 +395,7 @@ def parameter_importer(path: str = None) -> dict:
                                       'values must be numerical.')
                                 
                             # Update the dictionary with the new value.
-                            parameters_dict[param_read] = value
+                            parameters_dict[param_read.lower()] = value
                         
                     # Break the while loop when there are no more lines to be
                     # read.
