@@ -1,0 +1,4 @@
+>id1
+atcat
+>id2
+atcct

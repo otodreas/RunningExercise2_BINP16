@@ -1,0 +1,4 @@
+match_score = 1
+transition_penalty = -1
+transversion_penalty = -2
+gap_penalty = -3
