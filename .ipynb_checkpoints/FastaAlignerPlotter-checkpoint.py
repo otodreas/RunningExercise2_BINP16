@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 '''
 FastaAlignerPlotter.py
 
 Description: This program will output a dotplot of each pairwise alignment 
-in a FASTA file with multiple aligned sequences.
+in a FASTA file with multiple aligned sequences. This function produces a
+dotplot using matplotlib's "imshow" function, which reads a 2D numpy array as
+an image. The advantages to this are that the function is a neat solution to 
+plotting neighboring squares with different colors without having to draw
+polygons manually. The disadvantage is that the image needs bitmap coordinates,
+in which the y-axis is inverted. Therefore, the sequence plotted on the y-axis
+is read backwards.
 
 User-defined functions: 
     fasta_importer: takes a file path as an argument and returns a dictionary,
 where FASTA headers are keys and sequences are values.
+    Note: separate documentation is provided inside the user-defined functions.
 
 Non-standard modules: matplotlib.
     Use pip install matplotlib to install. Numpy is included in the
@@ -21,28 +27,45 @@ Procedure:
     3: Define user-defined functions
     4: Run program, iterating through sequences and plotting alignments
 
+The program addresses the following potential errors:
+    Exactly 1 filepath must be passed to the function. It must exist and be of
+the appropriate filetype
+    Other potential errors are handled inside user-defined functions. Separate
+documentation is provided for them
+
 Input: input file
 
 Usage: ./FastaAligner.py input_file
 
 Version 1.0
-Date: 2025-10-16
+Date: 2025-10-17
 Name: Oliver Todreas
 '''
 
 
-##### ==================== ###################################################
-##### 1: Library importing ###################################################
-##### ==================== ###################################################
+# ---------------
+# Library imports
+# ---------------
+
+# The sys module is used to access arguments from the command line.
 import sys
+
+# The os module is used to check if files exist and make directories.
 import os
+
+# The matplotlib module is used to make plots.
 import matplotlib.pyplot as plt
+
+# The numpy module is used to create numpy arrays used by matplotlib.
 import numpy as np
 
+# Import custom library.
+from importers import fasta_importer
 
-##### ============== #########################################################
-##### 2: User inputs #########################################################
-##### ============== #########################################################
+
+# -----------
+# User inputs
+# -----------
 
 # Check the number of arguments passed to the program.
 # If nothing is passed after the program name, throw an error.
@@ -57,195 +80,15 @@ elif len(sys.argv) > 2:
 # If one argument is passed after the program name, assign it to input_path.
 else:
     input_path = sys.argv[1]
-    
-
-###### ========================= #############################################
-###### 3: User-defined functions #############################################
-###### ========================= #############################################
-
-### 3.1: Define FASTA importer function.
-### ------------------------------------
-
-# Define fasta_importer that takes a file path as a string and returns a 
-# dictionary of the FASTA data.
-def fasta_importer(path: str) -> dict:
-    
-    '''
-    This function takes a FASTA file's location as a string, reads it, and 
-    returns a dictionary, where keys are headers and values are sequences. It
-    ensures the following conditions are met: 
-        
-        The file exists
-        The file is of FASTA format
-        The first character in the file is ">" 
-        The file contains more than one sequence
-        Sequences of equal length
-            The sequences must be of equal length because the FASTA file should
-            contain globally aligned sequences.
-        
-    A warning is also printed if invalid characters are detected. Since the
-    program does not reject disallowed characters but replaces them with "N",
-    any string can theoretically become a sequence.
-    '''
-    
-    # Import libraries used in the function.
-    import os
-    import numpy as np
-    
-    # Check that the path passed exists.
-    if not os.path.exists(path):
-        raise ValueError('The input file does not exist.')
-
-    # Check that the FASTA file is of the correct filetype.
-    fasta_exts = ('.fasta', '.fas', '.fa', '.fna', '.ffn', '.faa', '.mpfa', 
-                  '.frn')
-    if not path.endswith(fasta_exts):
-        raise ValueError('The input file must be a FASTA file.')
-
-    # Create empty dictionary fasta_dict in which to store the file.
-    fasta_dict = {}
-
-    # Initialize the variable line_count which will be updated at every line
-    # read. Initialize the variable file_startswith_GT to False. This will be
-    # changed to True if the input files start with '>'. Set header_read to
-    # False and update at every line depending on whether the line is a header.
-    first_line = True
-    file_startswith_GT = False
-    header_read = False
-    
-    # Initialize the variable invalid_characters_found to False.
-    invalid_characters_found = False
-    
-    # Create a dummy variables head and seq for style consistency.
-    head = ''
-    seq = ''
-
-    # Define the set valid_chars containing the permitted characters.
-    valid_chars = ['A', 'C', 'G', 'T', '-', 'N']
-
-    # Open the FASTA file.
-    with open(path, 'r') as f:
-
-        # Initiate while loop to read lines one at a time.
-        while True:
-
-            # Strip whitespace characters from the start and end of the line
-            # and save the string to the variable line.
-            line = f.readline().strip()
-
-            # Check if the line starts with '>', in which case it is a header.
-            if line.startswith('>'):
-
-                # If the line starting with '>' is the first line of the file,
-                # update file_startswith_GT.
-                if first_line:
-                    file_startswith_GT = True
-
-                # Add the previous header and complete sequence read before it
-                # to the dictionary fasta_dict.
-                else:
-                    fasta_dict[head] = seq
-            
-                # Assign the line to the variable head and set header_read to
-                # True.
-                head = line
-                header_read = True
-
-            # If the line does not start with '>' it is a sequence.
-            else:
-                
-                # Convert line to uppercase.
-                line_upper = line.upper()
-                
-                # Check that the sequence contains only valid characters. If
-                # it does not, replace invalid characters with N.
-                if sum(line_upper.count(c) for c in valid_chars) != len(line):
-                    
-                    # Store the characters from line_upper in a list to 
-                    # iterate through.
-                    line_list = list(line_upper)
-                    for i, l in enumerate(line_list):
-                        
-                        # Update the character at position i to N if it is not
-                        # valid.
-                        if l not in valid_chars:
-                            line_list[i] = 'N'
-                            invalid_characters_found = True
-                    
-                    # Convert line_list back to a string.
-                    line_upper = ''.join(line_list)
-                
-                # Check if the previously read line was a header. If so, 
-                # assign the current line to the variable seq.
-                if header_read:
-                    seq = line_upper
-                    
-                # If the previously read line was a sequence, add the current 
-                # line to the previous line to fix sequences split by newline 
-                # characters.
-                else:
-                    seq += line_upper
-
-                # Assign the variable header_read to False if the line read 
-                # did not start with a '>'.
-                header_read = False
-                
-            # Check if the file starts with '>'.
-            if first_line and not file_startswith_GT:
-                raise ValueError('FASTA file corrupted. The FASTA file must '
-                                 'start with ">".')
-                
-            # Update first_line to False.
-            first_line = False
-                
-            # Check if there are no more lines to read. Add the final head and 
-            # seq pair to fasta_dict and break the while loop.
-            if not line:
-                
-                # Add the final head and seq pair to fasta_dict.
-                fasta_dict[head] = seq
-                
-                # Warn user if invalid characters were found.
-                if invalid_characters_found:
-                    print('Warning: invalid characters found in the input '
-                          'file. These have been converted to "N".')
-                # Break the while loop.
-                break
-
-    # Check that all sequences are of the same length. If not, return an error.
-    # Loop through the values of the dictionary appending them to seq_lengths.
-    seq_lengths = []
-    for i in fasta_dict.values():
-        seq_lengths.append(len(i))
-        
-    # Check that more than one sequence was read.
-    if len(seq_lengths) < 2:
-        raise ValueError('The FASTA file does not contain more than 1 '
-                         'sequence.')
-        
-    # Ensure that the first sequence's is the same as all the other sequences.
-    if len(np.unique(seq_lengths)) > 1:
-        raise ValueError('Not all sequences in the FASTA file are of the same '
-                         'length.')
-        
-    # Return the dictionary fasta_dict.
-    return fasta_dict
 
 
-##### ================ #######################################################
-##### 4: Program logic #######################################################
-##### ================ #######################################################
-
-### 4.1: Import data.
-### -----------------
+# -------------
+# Program logic
+# -------------
 
 # Run the fasta_importer function on the file passed to the program by the 
 # user.
 fasta_dict = fasta_importer(input_path)
-
-
-### 4.2: Construct and save plots.
-### ------------------------------
 
 # Loop through dictionary entries, plotting each sequence against every other
 # sequence in the dictionary once.
@@ -292,20 +135,26 @@ for i, item1 in enumerate(fasta_dict.items()):
                         # sequence represented on the y axis is being read top
                         # down. Append the appropriate value to row.
                         if k + l + 1 == len(seq1):
+                            
+                            # Append 2 to the list row to encode for a diagonal
+                            # match.
                             row.append(2)
 
                         else:
+                            
+                            # Append 1 to the list row to encode for a non-
+                            # diagonal match.
                             row.append(1)
                             
-                    # In the case of a non-match, append 0 to row. 
+                    # Encode a non-match with 0. 
                     else:
                         row.append(0)
 
                 # Append row to im_list once the entire row has been read.
                 im_list.append(row)
 
-            # Convert im_list to a numpy array so that it can be handled by 
-            # plt.imshow.
+            # Convert im_list to a numpy array once the sequences have been
+            # read completely so that it can be handled by plt.imshow.
             im = np.array(im_list)
 
             # Assign variables xticks and yticks to lists of each sequence, 
@@ -346,4 +195,10 @@ for i, item1 in enumerate(fasta_dict.items()):
             # Save the plot in the folder dotplots.
             if not os.path.exists('dotplots'):
                 os.mkdir('dotplots')
-            plt.savefig(f'dotplots/{id1}_{id2}.png')
+                
+            # When saving the figure, force dpi to be equal to the dpi of the
+            # figure. This is the expected behavior when leaving this argument
+            # blank. However, I observed unexpected behavior when leaving the
+            # argument blank and found that assigning it to the figure's dpi
+            # when dealing with long alignments.
+            plt.savefig(f'dotplots/{id1}_{id2}.png', dpi=fig.get_dpi())
