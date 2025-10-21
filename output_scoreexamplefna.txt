@@ -1,1 +1,0 @@
-id1-id2: Identity: 8/12 (66.7%), Gaps: 2/12 (16.7%), Score=3
