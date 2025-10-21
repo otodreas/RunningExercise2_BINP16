@@ -63,7 +63,6 @@ parameters_path = None
 output_path = 'output_fasta.txt'
 
 # Check the number of arguments passed to the program.
-# If nothing is passed after the program name, throw an error.
 if len(sys.argv) <= 1:
     raise IndexError('Too few arguments passed. You must pass the path to '
                      'the input file to the program.')
@@ -77,8 +76,7 @@ elif len(sys.argv) > 4:
 elif len(sys.argv) == 2:
     input_path = sys.argv[1]
 
-# If two, assign the first to input_path and ask the user which type of file
-# the second argument is referring to.
+# If two, prompt user for clarification.
 elif len(sys.argv) == 3:
     input_path = sys.argv[1]
     argtype = input('The identity of the last argument is ambiguous. Are you '
@@ -103,8 +101,7 @@ else: # the only remaining possibility is that 4 arguments were passed.
 if not output_path.endswith('.txt'):
     raise ValueError('The output file must be a .txt file.')
     
-# Check if the output path already exists and warn the user of overwriting
-# risks unless the output path is left at its default.
+# Check if the output path already exists, throw overwrite warning.
 if os.path.exists(output_path) and output_path != 'output_fasta.txt':
     overwrite = input(f'The output path "{output_path}" already contains a '
                       f'file. Do you want to overwrite it ("yes"/"y" or '
@@ -124,21 +121,18 @@ if os.path.exists(output_path) and output_path != 'output_fasta.txt':
 # Program logic
 # -------------
 
-# Run the fasta_importer function on the file passed to the program by the 
-# user.
+# Run the fasta_importer function.
 fasta_dict = fasta_importer(input_path)
 parameters_dict = parameter_importer(parameters_path)
 
 # Assign an empty list to the variable score_summary.
 score_summary = ''
 
-# Loop through the keys in the dictionary, calculating each possible pairwise
-# score.
+# Calculate each possible pairwise score.
 for i, key1 in enumerate(fasta_dict.keys()):
     for j, key2 in enumerate(fasta_dict.keys()):
 
-        # Only calculate scores when i < j to ensure the same sequence does
-        # not get scored with itself or that duplicate scores are reported.
+        # Calculate each unique pairwise score.
         if i < j:
 
             # Assign sequences to variables.
@@ -151,51 +145,41 @@ for i, key1 in enumerate(fasta_dict.keys()):
             alignment_len = len(seq_a)
             disregarded_positions = 0
 
-            # Zip the sequences to compare alignment at each position and loop
-            # through nucleotide by nucleotide.
+            # Zip the sequences to compare alignment at each position.
             for a, b in zip(seq_a, seq_b):
 
-                # Check if either nucleotide is the character N. If so, do not
-                # change any scores but update the disregarded_positions 
-                # variable
+                # Check if either nucleotide is the character N.
                 if 'N' in (a, b):
                     disregarded_positions += 1
 
                 # Check if characters are identical.
                 elif a == b:
 
-                    # If they represent matching nucleotides, update score and
-                    # identity count.
+                    # Update variables for nucleotide match.
                     if '-' not in a:
                         score += parameters_dict['match_score']
                         identity += 1
                     
-                    # If the match is a gap, do not update any scores but 
-                    # update the disregarded_positions variable.
+                    # Do not update variables for gap matches.
                     else:
                         disregarded_positions += 1
                         
                 # If characters are not identical:
                 else:
 
-                    # Check if the unidentical characters represent a
-                    # nucleotide transition and update the score.
+                    # Update variables for transitions.
                     if (len({a, b} & {'A', 'G'}) == 2
                         or len({a, b} & {'C', 'T'}) == 2):
                         score += parameters_dict['transition']
 
-                    # The unidentical characters do not represent a nucleotide
-                    # transition.
                     else:
 
-                        # Check if the unidentical characters represent a gap
-                        # and update the score and gap count.
+                        # Update variables for gap.
                         if '-' in (a, b):
                             score += parameters_dict['gap_penalty']
                             gaps += 1
 
-                        # The last possible combinatinon of characters
-                        # represents a transversion. Update the score.
+                        # Update variables for transversions.
                         else:
                             score += parameters_dict['transversion']
 
@@ -203,7 +187,8 @@ for i, key1 in enumerate(fasta_dict.keys()):
             denominator = alignment_len - disregarded_positions
             identity_pct = round(identity / denominator * 100, 1)
             gaps_pct = round(gaps / denominator * 100, 1)
-            
+
+            # Create variable score_summary.
             score_summary += (f'{key1[1:]}-{key2[1:]}: '
                               f'Identity: {identity}/{denominator} '
                               f'({identity_pct}%), '
