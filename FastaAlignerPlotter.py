@@ -90,8 +90,8 @@ else:
 fasta_dict = fasta_importer(input_path)
 
 # Plot each nucleotide against every other nucleotide in a sequence pair.
-for i, item1 in enumerate(fasta_dict.items()):
-    for j, item2 in enumerate(fasta_dict.items()):
+for i, item1 in enumerate(list(fasta_dict.items())):
+    for j, item2 in enumerate(list(fasta_dict.items())[i+1:]):
 
         # Assign variables head and seq for each dictionary.
         head1 = item1[0]
@@ -99,72 +99,70 @@ for i, item1 in enumerate(fasta_dict.items()):
         seq1 = item1[1]
         seq2 = item2[1]
 
-        # Ensure only desired sequence pairs get plotted.
-        if i < j:
+        # Create the list im_list to store the data to be plotted.
+        im_list = []
 
-            # Create the list im_list to store the data to be plotted.
-            im_list = []
+        # Check match status
+        for l, base2 in enumerate(seq2[::-1]):
 
-            # Check match status
-            for l, base2 in enumerate(seq2[::-1]):
+            # Assign a blank list to the variable row.
+            row = []
 
-                # Assign a blank list to the variable row.
-                row = []
+            # Assign position values.
+            for k, base1 in enumerate(seq1):
 
-                # Assign position values.
-                for k, base1 in enumerate(seq1):
+                # Check if the bases are a match.
+                if base2 == base1 and base2 in 'ACGT':
 
-                    # Check if the bases are a match.
-                    if base2 == base1 and base2 in 'ACGT':
+                    # Diagonal match.
+                    if k + l + 1 == len(seq1):
+                        row.append(2)
 
-                        # Diagonal/non-diagonal match.
-                        if k + l + 1 == len(seq1):
-                            row.append(2)
-
-                        else:
-                            row.append(1)
-                            
-                    # Non-match. 
+                    # Non-diagonal match.
                     else:
-                        row.append(0)
+                        row.append(1)
+                            
+                # Non-match. 
+                else:
+                    row.append(0)
 
-                # Append row to im_list once the entire row has been read.
-                im_list.append(row)
+            # Append row to im_list once the entire row has been read.
+            im_list.append(row)
 
-            # Convert im_list to a numpy array after reading.
-            im = np.array(im_list)
+        # Convert im_list to a numpy array after reading.
+        im = np.array(im_list)
 
-            # Assign variables xticks and yticks to lists of each sequence.
-            xticks, yticks = list(seq1), list(seq2[::-1])
+        # Assign variables xticks and yticks to lists of each sequence.
+        xticks, yticks = list(seq1), list(seq2[::-1])
 
-            # Assign fig and ax using a matplotlib figure and axes.
-            fig, ax = plt.subplots()
+        # Assign fig and ax using a matplotlib figure and axes.
+        fig, ax = plt.subplots()
 
-            # Show each base, tick, and gridlines.
-            if len(seq1) < 30:
-                plt.xticks(range(len(seq1)), xticks)
-                plt.yticks(range(len(seq2)), yticks)
-                plt.grid(alpha=0.5)
+        # Show each base, tick, and gridlines.
+        if len(seq1) < 30:
+            plt.xticks(range(len(seq1)), xticks)
+            plt.yticks(range(len(seq2)), yticks)
+            plt.grid(alpha=0.5)
                 
-            else:
-                plt.xticks([])
-                plt.yticks([])
+        else:
+            plt.xticks([])
+            plt.yticks([])
 
-            # Set x and y axis labels.
-            id1 = head1.split()[0][1:]
-            id2 = head2.split()[0][1:]
-            ax.set_xlabel(f'Sequence A ({id1})')
-            ax.set_ylabel(f'Sequence B ({id2})')
+        # Set x and y axis labels.
+        id1 = head1.split()[0][1:]
+        id2 = head2.split()[0][1:]
+        ax.set_xlabel(f'Sequence A ({id1})')
+        ax.set_ylabel(f'Sequence B ({id2})')
 
-            # Set the plot title.
-            plt.title('Dot plot (main diagonal matches in black)')
+        # Set the plot title.
+        plt.title('Dot plot (main diagonal matches in black)')
             
-            # Plot the image to the axes.
-            plt.imshow(im, cmap='Greys')
+        # Plot the image to the axes.
+        plt.imshow(im, cmap='Greys')
             
-            # Save the plot in the folder dotplots.
-            if not os.path.exists('dotplots'):
-                os.mkdir('dotplots')
+        # Save the plot in the folder dotplots.
+        if not os.path.exists('dotplots'):
+            os.mkdir('dotplots')
                 
-            # Save the figure.
-            plt.savefig(f'dotplots/{id1}_{id2}.png', dpi=fig.get_dpi())
+        # Save the figure.
+        plt.savefig(f'dotplots/{id1}_{id2}.png', dpi=fig.get_dpi())

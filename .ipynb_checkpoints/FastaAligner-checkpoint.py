@@ -129,72 +129,69 @@ parameters_dict = parameter_importer(parameters_path)
 score_summary = ''
 
 # Calculate each possible pairwise score.
-for i, key1 in enumerate(fasta_dict.keys()):
-    for j, key2 in enumerate(fasta_dict.keys()):
+for i, key1 in enumerate(list(fasta_dict.keys())):
+    for j, key2 in enumerate(list(fasta_dict.keys())[i+1:]):
 
-        # Calculate each unique pairwise score.
-        if i < j:
+        # Assign sequences to variables.
+        seq_a, seq_b = fasta_dict[key1], fasta_dict[key2]
 
-            # Assign sequences to variables.
-            seq_a, seq_b = fasta_dict[key1], fasta_dict[key2]
+        # Initialize alignment scoring variables.
+        identity = 0
+        gaps = 0
+        score = 0
+        alignment_len = len(seq_a)
+        disregarded_positions = 0
 
-            # Initialize alignment scoring variables.
-            identity = 0
-            gaps = 0
-            score = 0
-            alignment_len = len(seq_a)
-            disregarded_positions = 0
+        # Zip the sequences to compare alignment at each position.
+        for a, b in zip(seq_a, seq_b):
 
-            # Zip the sequences to compare alignment at each position.
-            for a, b in zip(seq_a, seq_b):
+            # Check if either nucleotide is the character N.
+            if 'N' in (a, b):
+                disregarded_positions += 1
 
-                # Check if either nucleotide is the character N.
-                if 'N' in (a, b):
-                    disregarded_positions += 1
+            # Check if characters are identical.
+            elif a == b:
 
-                # Check if characters are identical.
-                elif a == b:
-
-                    # Update variables for nucleotide match.
-                    if '-' not in a:
-                        score += parameters_dict['match_score']
-                        identity += 1
+                # Update variables for nucleotide match.
+                if '-' not in a:
+                    score += parameters_dict['match_score']
+                    identity += 1
                     
-                    # Do not update variables for gap matches.
-                    else:
-                        disregarded_positions += 1
+                # Do not update variables for gap matches.
+                else:
+                    disregarded_positions += 1
                         
-                # If characters are not identical:
+            # If characters are not identical:
+            else:
+
+                # Update variables for transitions.
+                if (len({a, b} & {'A', 'G'}) == 2
+                    or len({a, b} & {'C', 'T'}) == 2):
+                    score += parameters_dict['transition']
+
                 else:
 
-                    # Update variables for transitions.
-                    if (len({a, b} & {'A', 'G'}) == 2
-                        or len({a, b} & {'C', 'T'}) == 2):
-                        score += parameters_dict['transition']
+                    # Update variables for gap.
+                    if '-' in (a, b):
+                        score += parameters_dict['gap_penalty']
+                        gaps += 1
 
+                    # Update variables for transversions.
                     else:
+                        score += parameters_dict['transversion']
 
-                        # Update variables for gap.
-                        if '-' in (a, b):
-                            score += parameters_dict['gap_penalty']
-                            gaps += 1
+        # Add the score summary to the string score_summary.
+        denominator = alignment_len - disregarded_positions
+        identity_pct = round(identity / denominator * 100, 1)
+        gaps_pct = round(gaps / denominator * 100, 1)
 
-                        # Update variables for transversions.
-                        else:
-                            score += parameters_dict['transversion']
-
-            # Add the score summary to the string score_summary.
-            denominator = alignment_len - disregarded_positions
-            identity_pct = round(identity / denominator * 100, 1)
-            gaps_pct = round(gaps / denominator * 100, 1)
-
-            # Create variable score_summary.
-            score_summary += (f'{key1[1:]}-{key2[1:]}: '
-                              f'Identity: {identity}/{denominator} '
-                              f'({identity_pct}%), '
-                              f'Gaps: {gaps}/{denominator} '
-                              f'({gaps_pct}%), '
-                              f'Score={score}\n')
+        # Create variable score_summary.
+        score_summary += (f'{key1[1:]}-{key2[1:]}: '
+                          f'Identity: {identity}/{denominator} '
+                          f'({identity_pct}%), '
+                          f'Gaps: {gaps}/{denominator} '
+                          f'({gaps_pct}%), '
+                          f'Score={score}\n')
 
 # Write output file.
 with open(output_path, 'w') as f:

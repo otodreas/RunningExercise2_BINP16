@@ -161,9 +161,9 @@ def parameter_importer(path: str = None) -> dict:
     in which case those parameters will be used to populate the dictionary
     instead. The format for the parameters file is as follows:
         
-        match_score = <value>\n
-        transition = <value>\n
-        transversion = <value>\n
+        match_score = <value>
+        transition = <value>
+        transversion = <value>
         gap_penalty = <value>
         
     The function ensures that the following conditions are met if a parameter
