@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
+'''
 FastaAlignerPlotter.py
 
-Description: This program will output a dotplot of each pairwise alignment
+Description: This program will output a dotplot of each pairwise alignment 
 in a FASTA file with multiple aligned sequences. This function produces a
 dotplot using matplotlib's "imshow" function, which reads a 2D numpy array as
-an image. The advantages to this are that the function is a neat solution to
+an image. The advantages to this are that the function is a neat solution to 
 plotting neighboring squares with different colors without having to draw
 polygons manually. The disadvantage is that the image needs bitmap coordinates,
 in which the y-axis is inverted. Therefore, the sequence plotted on the y-axis
 is read backwards.
 
-User-defined functions:
+User-defined functions: 
     fasta_importer: takes a file path as an argument and returns a dictionary,
 where FASTA headers are keys and sequences are values.
     Note: separate documentation is provided inside the user-defined functions.
@@ -41,7 +41,7 @@ Usage: ./FastaAligner.py input_file
 Version 1.0
 Date: 2025-10-17
 Name: Oliver Todreas
-"""
+'''
 
 
 # ---------------
@@ -70,15 +70,13 @@ from importers import fasta_importer
 
 # Check the number of arguments passed to the program.
 if len(sys.argv) <= 1:
-    raise IndexError(
-        "Too few arguments passed. You must pass the path to "
-        "the input file to the program."
-    )
-
+    raise IndexError('Too few arguments passed. You must pass the path to '
+                     'the input file to the program.')
+    
 # If three or more, raise an error.
 elif len(sys.argv) > 2:
-    raise IndexError("Too many arguments passed. Please pass only one file.")
-
+    raise IndexError('Too many arguments passed. Please pass only one file.')
+    
 # If one argument is passed after the program name, assign it to input_path.
 else:
     input_path = sys.argv[1]
@@ -93,7 +91,8 @@ fasta_dict = fasta_importer(input_path)
 
 # Plot each nucleotide against every other nucleotide in a sequence pair.
 for i, item1 in enumerate(list(fasta_dict.items())):
-    for j, item2 in enumerate(list(fasta_dict.items())[i + 1 :]):
+    for j, item2 in enumerate(list(fasta_dict.items())[i+1:]):
+
         # Assign variables head and seq for each dictionary.
         head1 = item1[0]
         head2 = item2[0]
@@ -105,13 +104,16 @@ for i, item1 in enumerate(list(fasta_dict.items())):
 
         # Check match status
         for l, base2 in enumerate(seq2[::-1]):
+
             # Assign a blank list to the variable row.
             row = []
 
             # Assign position values.
             for k, base1 in enumerate(seq1):
+
                 # Check if the bases are a match.
-                if base2 == base1 and base2 in "ACGT":
+                if base2 == base1 and base2 in 'ACGT':
+
                     # Diagonal match.
                     if k + l + 1 == len(seq1):
                         row.append(2)
@@ -119,8 +121,8 @@ for i, item1 in enumerate(list(fasta_dict.items())):
                     # Non-diagonal match.
                     else:
                         row.append(1)
-
-                # Non-match.
+                            
+                # Non-match. 
                 else:
                     row.append(0)
 
@@ -141,7 +143,7 @@ for i, item1 in enumerate(list(fasta_dict.items())):
             plt.xticks(range(len(seq1)), xticks)
             plt.yticks(range(len(seq2)), yticks)
             plt.grid(alpha=0.5)
-
+                
         else:
             plt.xticks([])
             plt.yticks([])
@@ -149,18 +151,18 @@ for i, item1 in enumerate(list(fasta_dict.items())):
         # Set x and y axis labels.
         id1 = head1.split()[0][1:]
         id2 = head2.split()[0][1:]
-        ax.set_xlabel(f"Sequence A ({id1})")
-        ax.set_ylabel(f"Sequence B ({id2})")
+        ax.set_xlabel(f'Sequence A ({id1})')
+        ax.set_ylabel(f'Sequence B ({id2})')
 
         # Set the plot title.
-        plt.title("Dot plot (main diagonal matches in black)")
-
+        plt.title('Dot plot (main diagonal matches in black)')
+            
         # Plot the image to the axes.
-        plt.imshow(im, cmap="Greys")
-
+        plt.imshow(im, cmap='Greys')
+            
         # Save the plot in the folder dotplots.
-        if not os.path.exists("dotplots"):
-            os.mkdir("dotplots")
-
+        if not os.path.exists('dotplots'):
+            os.mkdir('dotplots')
+                
         # Save the figure.
-        plt.savefig(f"dotplots/{id1}_{id2}.png", dpi=fig.get_dpi())
+        plt.savefig(f'dotplots/{id1}_{id2}.png', dpi=fig.get_dpi())
